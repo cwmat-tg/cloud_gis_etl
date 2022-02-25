@@ -1,0 +1,104 @@
+# This is the SAM template that represents the architecture of your serverless application
+# https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-template-basics.html
+
+# The AWSTemplateFormatVersion identifies the capabilities of the template
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/format-version-structure.html
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  nmss-dboard-etl
+
+# Transform section specifies one or more macros that AWS CloudFormation uses to process your template
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/transform-section-structure.html
+Transform:
+- AWS::Serverless-2016-10-31
+
+
+Parameters:
+  DBSSMPath:
+    Type: String
+    Description: Base path in SSM the app will read DB connection string from
+  SSMPath:
+    Type: String
+    Description: Base path in SSM the app will read config from
+  SecurityGroup1:
+    Type: AWS::EC2::SecurityGroup::Id
+    Description: Security group for app (To access rds?)
+  SecurityGroup2:
+    Type: AWS::EC2::SecurityGroup::Id
+    Description: Security group for app (To access rds?)
+  Subnet1:
+    Type: AWS::EC2::Subnet::Id
+    Description: Subnet for app (To access rds?)
+  Subnet2:
+    Type: AWS::EC2::Subnet::Id
+    Description: Subnet for app (To access rds?)
+
+# Resources declares the AWS resources that you want to include in the stack
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/resources-section-structure.html
+Resources:  
+  # This is the Lambda function definition associated with the source code: sqs-payload-logger.js. For all available properties, see
+  # https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+  NmssDashboardEtl:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: A Lambda function that populates an AGOL feature layer.
+      Runtime: nodejs14.x
+      Handler: src/app.run
+      # This property associates this Lambda function with a scheduled CloudWatch Event. For all available properties, see
+      # https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#schedule
+      # This example runs every night at midnight.
+      Events:
+        CloudWatchEvent:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 6 * * ? *)
+      MemorySize: 256
+      Timeout: 900
+      Role: !GetAtt ParameterStoreFunctionRole.Arn
+      Environment:
+        Variables:
+          SSMPath: !Ref SSMPath
+          DBSSMPath: !Ref DBSSMPath
+      VpcConfig:
+        SecurityGroupIds:
+            - !Ref SecurityGroup1
+            - !Ref SecurityGroup2
+        SubnetIds:
+            - !Ref Subnet1
+            - !Ref Subnet2
+    
+  ParameterStoreFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              Service:
+                - 'lambda.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole'
+      Policies:
+        -
+          PolicyName: 'ParameterStoreLocalParameterAccess'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              -
+                Effect: Allow
+                Action:
+                  - 'ssm:GetParameter*'
+                  - 'kms:Encrypt'
+                  - 'kms:Decrypt'
+                  - 'kms:ReEncrypt*'
+                  - 'kms:GenerateDataKey*'
+                  - 'kms:DescribeKey'
+                Resource: 
+                  - !Sub 'arn:aws:ssm:us-east-1:${AWS::AccountId}:parameter${SSMPath}'
+                  - !Sub 'arn:aws:ssm:us-east-1:${AWS::AccountId}:parameter${DBSSMPath}'
+                  - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:/key/aws/ssm'

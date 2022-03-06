@@ -20,7 +20,6 @@ async function main(context) {
 
   /* 
     Example of unpacking config from AWS SSM
-  */
   // // Get and unpack
   // const paramsRaw = await helper.getParameter({Name: process.env.SSMPath, WithDecryption: true})
   // const params = JSON.parse(paramsRaw.Parameter.Value);
@@ -30,6 +29,7 @@ async function main(context) {
 
   // // Can now access as normal via process.env
   // console.log(process.env.FEATURE_SERVICE)
+  */
 
   /* 
     Query DB to get completed treatments

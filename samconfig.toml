@@ -1,0 +1,12 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "cloud-gis-etl"
+s3_bucket = "{ENTER-AN-S3-BUCKET-NAME-FOR-BUILD-ARTIFICATS}"
+s3_prefix = "cloud-gis-etl"
+region = "us-east-1"
+confirm_changeset = false
+capabilities = "CAPABILITY_IAM CAPABILITY_AUTO_EXPAND"
+parameter_overrides = "SecurityGroup1=\"sg-{ENTER-YOUR-SG}\" SecurityGroup2=\"sg-{ENTER-YOUR-SG}\" Subnet1=\"subnet-{ENTER-YOUR-SUBNET}\" Subnet2=\"subnet-{ENTER-YOUR-SUBNET}\" SSMPath=\"{ENTER-YOUR-SSM}" DBSSMPath=\"{ENTER-YOUR-SSM}" "
+tags = "application=\"cloud-gis-etl\" environment=\"dev\""

@@ -43,7 +43,6 @@ async function main(context) {
     Used to be a segment here that would clear the AGOL feature layer if no feautres 
     were returned from the DB.
   */
-  // Removed...
 
   /*
     Get AGOL features for Watersheds

@@ -79,7 +79,7 @@ You can debug locally using `npm start`.  Deploying to AWS is optional and requi
 More info on SAM setup can be found:
 https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-specification-template-anatomy.html
 
-To deploy, run `sam deploy` from a command prompt once the above files have been configured.
+To deploy, run `sam build` then `sam deploy` from a command prompt once the above files have been configured.
 
 Alternatively you can run `sam deploy --guided` to get a CLI wizard to help you deploy.
 
